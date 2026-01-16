@@ -1,0 +1,107 @@
+hf token - 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
+
+
+git clone https://github.com/Lightricks/LTX-2.git
+cd LTX-2
+
+pip install uv
+uv sync --frozen
+
+source .venv/bin/activate
+
+
+mkdir -p /workspace/LTX-2/models/ltx2
+mkdir -p /workspace/LTX-2/models/gemma
+
+hf auth login
+
+# Distilled model
+hf download Lightricks/LTX-2 \
+  ltx-2-19b-distilled-fp8.safetensors \
+  ltx-2-spatial-upscaler-x2-1.0.safetensors \
+  ltx-2-19b-distilled-lora-384.safetensors \
+  --local-dir /workspace/LTX-2/models/ltx2
+
+*********************Non Distilled*********************
+hf download Lightricks/LTX-2 \
+  ltx-2-19b-dev-fp8.safetensors \
+  ltx-2-spatial-upscaler-x2-1.0.safetensors \
+  --local-dir /workspace/LTX-2/models/ltx2
+  
+hf download Lightricks/LTX-2 \
+  ltx-2-19b-distilled-lora-384.safetensors \
+  --local-dir /workspace/LTX-2/models/ltx2
+*********************Non Distilled*********************
+
+
+hf download google/gemma-3-12b-it-qat-q4_0-unquantized \
+  --local-dir /workspace/LTX-2/models/gemma
+
+uv sync --extra xformers
+
+
+cat > /workspace/LTX-2/run_distilled_cli.py <<'PY'
+import sys
+import runpy
+
+# This runs the repo's distilled pipeline entry exactly as intended.
+# It expects CLI args like --checkpoint-path etc.
+if __name__ == "__main__":
+    runpy.run_module("ltx_pipelines.distilled", run_name="__main__")
+PY
+
+
+ffmpeg -y -i "/workspace/LTX-2/test_short.mp4" \
+  -vsync cfr -r 16 \
+  -c:v libx264 -pix_fmt yuv420p -preset fast -crf 18 \
+  -c:a aac -b:a 128k -shortest \
+  -movflags +faststart \
+  "/workspace/LTX-2/test_short_fixed.mp4"
+  
+
+python -m ltx_pipelines.distilled \
+  --checkpoint-path /workspace/LTX-2/models/ltx2/ltx-2-19b-distilled-fp8.safetensors \
+  --spatial-upsampler-path /workspace/LTX-2/models/ltx2/ltx-2-spatial-upscaler-x2-1.0.safetensors \
+  --gemma-root /workspace/LTX-2/models/gemma \
+  --lora /workspace/LTX-2/models/ltx2/ltx-2-19b-distilled-lora-384.safetensors 1.0 \
+  --enable-fp8 \
+  --prompt "" \
+  --seed 7 \
+  --height 1344 --width 768 \
+  --num-frames 97 \
+  --frame-rate 24 \
+  --output-path /workspace/LTX-2/test_short.mp4
+  
+  
+set +H
+
+read -r -d '' PROMPT <<'EOF'
+Cinematic close-up of a female aerospace engineer in a dimly lit mission control center. The cool blue glow of computer monitors reflects in her eyes. She wears a headset and looks relieved, her mouth moving in perfect sync as she speaks a long message: 'Mission Control, this is Lead Engineer Sarah. Touchdown is confirmed. We are officially on the surface of Mars and all systems are showing green across the board. It has been a long journey, but we are finally home.' Behind her, the out-of-focus control room erupts into blurred movement and muffled cheering. Soft rim lighting highlights her face. Audio: Clear, professional female voice with a slight crackle of radio static, over the ambient hum of server fans and distant applause.
+EOF
+
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
+python -m ltx_pipelines.ti2vid_two_stages \
+  --checkpoint-path /workspace/LTX-2/models/ltx2/ltx-2-19b-dev-fp8.safetensors \
+  --distilled-lora /workspace/LTX-2/models/ltx2/ltx-2-19b-distilled-lora-384.safetensors 0.8 \
+  --spatial-upsampler-path /workspace/LTX-2/models/ltx2/ltx-2-spatial-upscaler-x2-1.0.safetensors \
+  --enable-fp8 \
+  --gemma-root /workspace/LTX-2/models/gemma \
+  --height 704 --width 1216 \
+  --num-frames 241 \
+  --frame-rate 24 \
+  --num-inference-steps 35 \
+  --cfg-guidance-scale 4.0 \
+  --prompt "$PROMPT" \
+  --output-path /workspace/output.mp4	
+
+  
+  
+************server****************
+pip install fastapi uvicorn pydantic
+uvicorn server:app --host 0.0.0.0 --port 8000
+************server****************
+
+
+export PYTHONPATH=/workspace/LTX-2/packages/ltx-pipelines/src:/workspace/LTX-2/packages/ltx-core/src:$PYTHONPATH
+
+
