@@ -42,6 +42,7 @@ def main():
     ap.add_argument("--height", type=int, default=704)
     ap.add_argument("--width", type=int, default=1216)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--charecter-image", type=str, default="/workspace/LTX-2-main/charecters/ELARA_VANCE.png")
 
     ap.add_argument("--negative-prompt", default="text, watermark, logo, blurry, low quality, distorted, glitch, jitter")
     ap.add_argument("--enable-fp8", action="store_true")
@@ -120,6 +121,7 @@ def main():
                 images=[],
                 tiling_config=tiling_config,
             )
+            video_iter.images = [(args.charecter_image, 0, 0.8)]
 
             # Save MP4 (exactly how ti2vid_two_stages.py main() does it)
             encode_video(
