@@ -313,6 +313,7 @@ Examples:
     parser.add_argument(
         "--enhance-prompt",
         action="store_true",
+        default=False,
         help="Enable prompt enhancement"
     )
     parser.add_argument(
