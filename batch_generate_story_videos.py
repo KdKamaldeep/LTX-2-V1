@@ -126,48 +126,29 @@ def generate_video_for_scene(
     # Use scene-specific seed (base seed + scene number for variation)
     scene_seed = seed + scene_num - 1
     
+    # Disable enhance_prompt when using torch.inference_mode() as they are incompatible
+    # The working script doesn't use enhance_prompt, and it causes autograd conflicts
+    if enhance_prompt:
+        logger.warning(f"⚠️  enhance_prompt is incompatible with torch.inference_mode(). Disabling it for this generation.")
+        enhance_prompt = False
+    
     # Generate video
     # Use torch.inference_mode() context manager like the working script
-    # If enhance_prompt causes inference mode errors, retry without it
-    try:
-        with torch.inference_mode():
-            video, audio = pipeline(
-                prompt=prompt,
-                negative_prompt=negative_prompt,
-                seed=scene_seed,
-                height=height,
-                width=width,
-                num_frames=num_frames,
-                frame_rate=frame_rate,
-                num_inference_steps=num_inference_steps,
-                cfg_guidance_scale=cfg_guidance_scale,
-                images=[],  # No image conditioning
-                tiling_config=tiling_config,
-                enhance_prompt=enhance_prompt,
-            )
-    except RuntimeError as e:
-        if "inference mode" in str(e).lower() or "autograd" in str(e).lower():
-            if enhance_prompt:
-                logger.warning(f"⚠️  Inference mode error with enhance_prompt enabled. Retrying without prompt enhancement...")
-                with torch.inference_mode():
-                    video, audio = pipeline(
-                        prompt=prompt,
-                        negative_prompt=negative_prompt,
-                        seed=scene_seed,
-                        height=height,
-                        width=width,
-                        num_frames=num_frames,
-                        frame_rate=frame_rate,
-                        num_inference_steps=num_inference_steps,
-                        cfg_guidance_scale=cfg_guidance_scale,
-                        images=[],  # No image conditioning
-                        tiling_config=tiling_config,
-                        enhance_prompt=False,
-                    )
-            else:
-                raise
-        else:
-            raise
+    with torch.inference_mode():
+        video, audio = pipeline(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            seed=scene_seed,
+            height=height,
+            width=width,
+            num_frames=num_frames,
+            frame_rate=frame_rate,
+            num_inference_steps=num_inference_steps,
+            cfg_guidance_scale=cfg_guidance_scale,
+            images=[],  # No image conditioning
+            tiling_config=tiling_config,
+            enhance_prompt=enhance_prompt,  # Already disabled above if incompatible
+        )
     
     # Encode and save video
     encode_video(
