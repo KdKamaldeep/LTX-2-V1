@@ -11,6 +11,7 @@ Requirements:
 Usage:
     python batch_generate_story_videos.py --json story.json --checkpoint-path path/to/checkpoint.safetensors ...
 """
+import torch
 
 import json
 import os
@@ -126,20 +127,47 @@ def generate_video_for_scene(
     scene_seed = seed + scene_num - 1
     
     # Generate video
-    video, audio = pipeline(
-        prompt=prompt,
-        negative_prompt=negative_prompt,
-        seed=scene_seed,
-        height=height,
-        width=width,
-        num_frames=num_frames,
-        frame_rate=frame_rate,
-        num_inference_steps=num_inference_steps,
-        cfg_guidance_scale=cfg_guidance_scale,
-        images=[],  # No image conditioning
-        tiling_config=tiling_config,
-        enhance_prompt=enhance_prompt,
-    )
+    # Use torch.no_grad() instead of torch.inference_mode() to avoid autograd conflicts
+    # If enhance_prompt causes inference mode errors, retry without it
+    try:
+        with torch.no_grad():
+            video, audio = pipeline(
+                prompt=prompt,
+                negative_prompt=negative_prompt,
+                seed=scene_seed,
+                height=height,
+                width=width,
+                num_frames=num_frames,
+                frame_rate=frame_rate,
+                num_inference_steps=num_inference_steps,
+                cfg_guidance_scale=cfg_guidance_scale,
+                images=[],  # No image conditioning
+                tiling_config=tiling_config,
+                enhance_prompt=enhance_prompt,
+            )
+    except RuntimeError as e:
+        if "inference mode" in str(e).lower() or "autograd" in str(e).lower():
+            if enhance_prompt:
+                logger.warning(f"⚠️  Inference mode error with enhance_prompt enabled. Retrying without prompt enhancement...")
+                with torch.no_grad():
+                    video, audio = pipeline(
+                        prompt=prompt,
+                        negative_prompt=negative_prompt,
+                        seed=scene_seed,
+                        height=height,
+                        width=width,
+                        num_frames=num_frames,
+                        frame_rate=frame_rate,
+                        num_inference_steps=num_inference_steps,
+                        cfg_guidance_scale=cfg_guidance_scale,
+                        images=[],  # No image conditioning
+                        tiling_config=tiling_config,
+                        enhance_prompt=False,
+                    )
+            else:
+                raise
+        else:
+            raise
     
     # Encode and save video
     encode_video(

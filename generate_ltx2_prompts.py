@@ -5,9 +5,10 @@ Generates cohesive scene prompts that form a complete narrative, following LTX-2
 
 The script:
 1. Asks for a story title
-2. Generates a story outline
-3. Creates scene-by-scene prompts that flow together as a short film script
-4. Outputs prompts in JSON format
+2. Asks for a story description
+3. Generates a story outline
+4. Creates scene-by-scene prompts that flow together as a short film script
+5. Outputs prompts in JSON format
 
 Requirements:
     pip install openai
@@ -73,12 +74,13 @@ def create_prompt_generation_instruction() -> str:
     Create scene prompts that form a cohesive narrative following ALL these guidelines."""
 
 
-def generate_story_outline(story_title: str, num_scenes: int, style: str = "", model: str = "gpt-4o-mini") -> str:
+def generate_story_outline(story_title: str, story_description: str, num_scenes: int, style: str = "", model: str = "gpt-4o-mini") -> str:
     """
     Generate a story outline for the short film.
     
     Args:
         story_title: Title of the short film
+        story_description: Description of the story to provide context
         num_scenes: Number of scenes in the script
         style: Visual/cinematic style of the film
         model: OpenAI model to use
@@ -91,8 +93,10 @@ def generate_story_outline(story_title: str, num_scenes: int, style: str = "", m
     
     style_context = f" The film should be in {style} style." if style else ""
     
+    description_context = f"\n\nStory Description:\n{story_description}" if story_description else ""
+    
     user_message = f"""Create a brief story outline for a short film titled "{story_title}".
-    The film should have {num_scenes} scenes that form a complete narrative arc.{style_context}
+    The film should have {num_scenes} scenes that form a complete narrative arc.{style_context}{description_context}
     Provide a concise outline describing what happens in each scene and how they connect.
     Keep it to 2-3 sentences per scene."""
     
@@ -111,12 +115,13 @@ def generate_story_outline(story_title: str, num_scenes: int, style: str = "", m
         return ""
 
 
-def generate_ltx2_prompts(story_title: str, num_scenes: int, story_outline: str, style: str = "", model: str = "gpt-4o-mini") -> List[Dict[str, str]]:
+def generate_ltx2_prompts(story_title: str, story_description: str, num_scenes: int, story_outline: str, style: str = "", model: str = "gpt-4o-mini") -> List[Dict[str, str]]:
     """
     Generate LTX-2 video prompts as scenes for a short film script in a single API call.
     
     Args:
         story_title: Title of the short film
+        story_description: Description of the story to provide context
         num_scenes: Number of scene prompts to generate
         story_outline: The story outline to maintain narrative consistency
         style: Visual/cinematic style of the film
@@ -129,10 +134,12 @@ def generate_ltx2_prompts(story_title: str, num_scenes: int, story_outline: str,
     
     style_context = f"\nVisual Style: {style}\nApply this style consistently throughout all scenes, incorporating appropriate cinematography, lighting, color palette, and aesthetic elements that match this style." if style else ""
     
+    description_context = f"\n\nStory Description:\n{story_description}" if story_description else ""
+    
     user_message = f"""You are writing a complete short film script with {num_scenes} scenes for a film titled "{story_title}".
 
 Story Outline:
-{story_outline}{style_context}
+{story_outline}{description_context}{style_context}
 
 Generate ALL {num_scenes} scenes that:
 - Follow the story outline and advance the narrative from beginning to end
@@ -228,8 +235,8 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python generate_ltx2_prompts.py --title "The Lost Key" --style "film noir" --scenes 5
-  python generate_ltx2_prompts.py -t "Space Adventure" -s "cyberpunk" -n 7 -o my_script.json
+  python generate_ltx2_prompts.py --title "The Lost Key" --description "A detective searches for a missing key" --style "film noir" --scenes 5
+  python generate_ltx2_prompts.py -t "Space Adventure" -d "An astronaut discovers an alien artifact" -s "cyberpunk" -n 7 -o my_script.json
   python generate_ltx2_prompts.py  # Interactive mode (will prompt for inputs)
 
 Style options:
@@ -242,6 +249,11 @@ Style options:
         "-t", "--title",
         type=str,
         help="Story title for the short film"
+    )
+    parser.add_argument(
+        "-d", "--description",
+        type=str,
+        help="Story description to provide context for generation"
     )
     parser.add_argument(
         "-s", "--style",
@@ -274,6 +286,18 @@ Style options:
             story_title = "Untitled Short Film"
             print(f"Using default title: {story_title}")
     
+    # Get story description
+    if args.description:
+        story_description = args.description.strip()
+        print(f"Story Description: {story_description}")
+    else:
+        story_description = input("\nEnter a description of your story (what the story is about, key themes, characters, etc.): ").strip()
+        if not story_description:
+            story_description = ""
+            print("No story description provided - will generate based on title only")
+        else:
+            print(f"Story description received: {story_description[:100]}..." if len(story_description) > 100 else f"Story description received")
+    
     # Get style
     if args.style is not None:
         style = args.style.strip()
@@ -305,7 +329,7 @@ Style options:
             num_scenes = 5
     
     print(f"\n📝 Generating story outline for '{story_title}'...")
-    story_outline = generate_story_outline(story_title, num_scenes, style)
+    story_outline = generate_story_outline(story_title, story_description, num_scenes, style)
     
     if story_outline:
         print("\n📋 Story Outline:")
@@ -316,7 +340,7 @@ Style options:
     print(f"\n🎬 Generating {num_scenes} scene prompts for '{story_title}'...")
     print("This may take a moment...\n")
     
-    prompts = generate_ltx2_prompts(story_title, num_scenes, story_outline, style)
+    prompts = generate_ltx2_prompts(story_title, story_description, num_scenes, story_outline, style)
     
     if prompts:
         print(f"\n✅ Successfully generated {len(prompts)} scene prompts!\n")
