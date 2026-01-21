@@ -47,7 +47,7 @@ ffmpeg -y -i "/workspace/LTX-2-V1/test_short.mp4" \
 set +H
 
 read -r -d '' PROMPT <<'EOF'
-Cinematic close-up of a female aerospace engineer in a dimly lit mission control center. The cool blue glow of computer monitors reflects in her eyes. She wears a headset and looks relieved, her mouth moving in perfect sync as she speaks a long message: 'Mission Control, this is Lead Engineer Sarah. Touchdown is confirmed. We are officially on the surface of Mars and all systems are showing green across the board. It has been a long journey, but we are finally home.' Behind her, the out-of-focus control room erupts into blurred movement and muffled cheering. Soft rim lighting highlights her face. Audio: Clear, professional female voice with a slight crackle of radio static, over the ambient hum of server fans and distant applause.
+The scene escalates with a sudden chaos as the attic is discovered by Nazi soldiers, the camera employing quick cuts to convey the frantic energy of the moment. Shadows loom over Anne's terrified face, framed tightly in close-up; her wide eyes reflect both fear and fierce determination as she frantically hides her diary beneath the floorboards. The dim, flickering light casts erratic shadows, heightening the sense of urgency and despair, while the sounds of shouting and heavy boots reverberate through the attic. As Anne is forcefully taken away, the camera pulls back, revealing the hidden diary remaining, a silent testament to her voice. A haunting voiceover from Anne reflects her poignant final thoughts on hope and humanity, merging with a melancholic piano score that fills the scene with an emotional weight, concluding with an impactful stillness that lingers on the diary—an emblem of resilience amid tragedy.
 EOF
 
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
@@ -56,7 +56,7 @@ python -m ltx_pipelines.ti2vid_two_stages \
   --distilled-lora /workspace/LTX-2-V1/models/ltx2/ltx-2-19b-distilled-lora-384.safetensors 0.8 \
   --spatial-upsampler-path /workspace/LTX-2-V1/models/ltx2/ltx-2-spatial-upscaler-x2-1.0.safetensors \
   --enable-fp8 \
-  --gemma-root /workspace/LTX-2/models/gemma \
+  --gemma-root /workspace/LTX-2-V1/models/gemma \
   --height 704 --width 1216 \
   --num-frames 241 \
   --frame-rate 24 \
@@ -70,17 +70,22 @@ export PYTHONPATH=/workspace/LTX-2-V1/packages/ltx-pipelines/src:/workspace/LTX-
 
 **********************************************************************************************************************
 
+
 python batch_generate_story_videos.py \
-    --json story.json \
+     --json The_Diary_of_a_Young_Girl_script.json \
     --checkpoint-path /workspace/LTX-2-V1/models/ltx2/ltx-2-19b-dev-fp8.safetensors \
-    --distilled-lora /workspace/LTX-2-V1/models/ltx2/ltx-2-19b-distilled-lora-384.safetensors 0.8 \
+    --distilled-lora /workspace/LTX-2-V1/models/ltx2/ltx-2-19b-distilled-lora-384.safetensors:0.8 \
     --spatial-upsampler-path /workspace/LTX-2-V1/models/ltx2/ltx-2-spatial-upscaler-x2-1.0.safetensors \
-    --gemma-root models/gemma \
+    --gemma-root /workspace/LTX-2-V1/models/gemma \
     --output-dir videos \
     --seed 42 \
     --num-frames 121 \
-    --height 1024 \
-    --width 1024 \
+    --height 704 \
+    --width 1216 \
+    --frame-rate 25 \
     --num-inference-steps 40 \
+    --cfg-guidance-scale 7.5 \
     --enable-fp8 \
+    --enhance-prompt \
     --skip-existing
+	
