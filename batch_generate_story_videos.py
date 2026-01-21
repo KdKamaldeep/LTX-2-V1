@@ -15,6 +15,8 @@ import argparse
 import logging
 import subprocess
 import shlex
+import tempfile
+import shutil
 from pathlib import Path
 from typing import Dict
 
@@ -48,6 +50,69 @@ def load_story_json(json_path: str) -> Dict:
             raise ValueError(f"Prompt {i+1} is missing 'title' or 'prompt' field")
     
     return data
+
+
+def stitch_videos_with_ffmpeg(
+    video_paths: list[str],
+    output_path: str,
+) -> str:
+    """Stitch multiple videos together using ffmpeg concat demuxer."""
+    if not video_paths:
+        raise ValueError("No videos to stitch")
+    
+    # Filter out None values (failed generations)
+    valid_videos = [v for v in video_paths if v is not None and os.path.exists(v)]
+    if not valid_videos:
+        raise ValueError("No valid videos to stitch")
+    
+    if len(valid_videos) == 1:
+        logger.info(f"Only one video, copying to {output_path}")
+        shutil.copy2(valid_videos[0], output_path)
+        return output_path
+    
+    logger.info(f"Stitching {len(valid_videos)} videos into {output_path}")
+    
+    # Create a temporary file list for ffmpeg concat demuxer
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+        concat_file = f.name
+        for video_path in valid_videos:
+            # Use absolute paths and escape single quotes
+            abs_path = os.path.abspath(video_path).replace("'", "'\\''")
+            f.write(f"file '{abs_path}'\n")
+    
+    try:
+        # Use ffmpeg concat demuxer for seamless concatenation
+        cmd = [
+            "ffmpeg",
+            "-y",  # Overwrite output file
+            "-f", "concat",
+            "-safe", "0",
+            "-i", concat_file,
+            "-c", "copy",  # Copy streams without re-encoding (fast)
+            output_path,
+        ]
+        
+        logger.info(f"Running: {' '.join(cmd)}")
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        
+        logger.info(f"✅ Successfully stitched videos to {output_path}")
+        if result.stderr:
+            logger.debug(f"ffmpeg output: {result.stderr}")
+        
+        return output_path
+    except subprocess.CalledProcessError as e:
+        error_msg = e.stderr or e.stdout or str(e)
+        logger.error(f"❌ Error stitching videos: {error_msg}")
+        raise
+    finally:
+        # Clean up temp file
+        if os.path.exists(concat_file):
+            os.unlink(concat_file)
 
 
 def generate_video_for_scene(
@@ -266,6 +331,17 @@ Examples:
         action="store_true",
         help="Skip scenes that already have generated videos"
     )
+    parser.add_argument(
+        "--stitch-videos",
+        action="store_true",
+        help="Stitch all generated videos into a single output video using ffmpeg"
+    )
+    parser.add_argument(
+        "--stitch-output",
+        type=str,
+        default=None,
+        help="Output path for stitched video (default: {output_dir}/stitched_story.mp4)"
+    )
     
     args = parser.parse_args()
     
@@ -363,6 +439,25 @@ Examples:
             "scenes": [{"title": s["title"], "video": v} for s, v in zip(scenes, generated_videos)]
         }, f, indent=2, ensure_ascii=False)
     logger.info(f"\nVideo list saved to: {video_list_path}")
+    
+    # Stitch videos if requested
+    if args.stitch_videos:
+        logger.info("=" * 60)
+        logger.info("STITCHING VIDEOS")
+        logger.info("=" * 60)
+        
+        if args.stitch_output:
+            stitch_output = resolve_path(args.stitch_output)
+        else:
+            stitch_output = os.path.join(output_dir, "stitched_story.mp4")
+        
+        try:
+            stitched_path = stitch_videos_with_ffmpeg(generated_videos, stitch_output)
+            logger.info(f"✅ Stitched video saved to: {stitched_path}")
+            logger.info("=" * 60)
+        except Exception as e:
+            logger.error(f"❌ Error stitching videos: {str(e)}")
+            logger.error("Individual scene videos are still available in the output directory")
 
 
 if __name__ == "__main__":
