@@ -94,14 +94,22 @@ python -m ltx_pipelines.ti2vid_two_stages \
   --prompt "$PROMPT" \
   --output-path /workspace/output.mp4	
 
-  
-  
-************server****************
-pip install fastapi uvicorn pydantic
-uvicorn server:app --host 0.0.0.0 --port 8000
-************server****************
-
 
 export PYTHONPATH=/workspace/LTX-2/packages/ltx-pipelines/src:/workspace/LTX-2/packages/ltx-core/src:$PYTHONPATH
 
+**********************************************************************************************************************
 
+python batch_generate_story_videos.py \
+    --json story.json \
+    --checkpoint-path models/checkpoint.safetensors \
+    --distilled-lora models/distilled_lora.safetensors:0.8 \
+    --spatial-upsampler-path models/upsampler.safetensors \
+    --gemma-root models/gemma \
+    --output-dir videos \
+    --seed 42 \
+    --num-frames 121 \
+    --height 1024 \
+    --width 1024 \
+    --num-inference-steps 40 \
+    --enable-fp8 \
+    --skip-existing
