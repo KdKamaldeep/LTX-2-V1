@@ -132,6 +132,7 @@ def generate_video_for_scene(
     cfg_guidance_scale: float,
     negative_prompt: str,
     enable_fp8: bool = False,
+    enhance_prompt: bool = False,
     loras: list[str] = None,
 ) -> str:
     """Generate a video for a single scene prompt using CLI command."""
@@ -145,11 +146,19 @@ def generate_video_for_scene(
     # Use scene-specific seed (base seed + scene number for variation)
     scene_seed = seed + scene_num - 1
     
+    # Parse distilled LoRA path and strength
+    # Format can be "path" or "path:strength"
+    if ":" in distilled_lora:
+        lora_path, lora_strength = distilled_lora.split(":", 1)
+    else:
+        lora_path = distilled_lora
+        lora_strength = "0.8"  # Default strength
+    
     # Build the CLI command
     cmd = [
         "python", "-m", "ltx_pipelines.ti2vid_two_stages",
         "--checkpoint-path", checkpoint_path,
-        "--distilled-lora", distilled_lora,
+        "--distilled-lora", lora_path, lora_strength,  # Separate arguments
         "--spatial-upsampler-path", spatial_upsampler_path,
         "--gemma-root", gemma_root,
         "--height", str(height),
@@ -167,6 +176,9 @@ def generate_video_for_scene(
     if enable_fp8:
         cmd.append("--enable-fp8")
     
+    if enhance_prompt:
+        cmd.append("--enhance-prompt")
+    
     if loras:
         for lora in loras:
             cmd.extend(["--lora", lora])
@@ -175,23 +187,44 @@ def generate_video_for_scene(
     env = os.environ.copy()
     env["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
     
-    # Run the command
+    # Run the command with real-time output streaming
     logger.info(f"Running command: {' '.join(shlex.quote(str(arg)) for arg in cmd[:10])}...")
     try:
-        result = subprocess.run(
+        process = subprocess.Popen(
             cmd,
             env=env,
-            check=True,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,  # Combine stderr into stdout
             text=True,
+            bufsize=1,  # Line buffered
+            universal_newlines=True,
         )
+        
+        # Stream output in real-time and collect for error reporting
+        output_lines = []
+        for line in process.stdout:
+            line = line.rstrip()
+            if line:  # Only print non-empty lines
+                logger.info(f"[Scene {scene_num}] {line}")
+                output_lines.append(line)
+        
+        # Wait for process to complete and get return code
+        return_code = process.wait()
+        
+        if return_code != 0:
+            error_output = "\n".join(output_lines[-20:])  # Last 20 lines for context
+            logger.error(f"❌ Error generating Scene {scene_num}: Command failed with return code {return_code}")
+            if error_output:
+                logger.error(f"Last output lines:\n{error_output}")
+            raise subprocess.CalledProcessError(return_code, cmd, output="\n".join(output_lines))
+        
         logger.info(f"✅ Completed Scene {scene_num}: {os.path.basename(output_path)}")
-        if result.stdout:
-            logger.debug(f"Command output: {result.stdout}")
         return output_path
     except subprocess.CalledProcessError as e:
-        error_msg = e.stderr or e.stdout or str(e)
-        logger.error(f"❌ Error generating Scene {scene_num}: {error_msg}")
+        # Error already logged above
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error generating Scene {scene_num}: {str(e)}")
         raise
 
 
@@ -327,6 +360,11 @@ Examples:
         help="Enable FP8 mode to reduce memory footprint"
     )
     parser.add_argument(
+        "--enhance-prompt",
+        action="store_true",
+        help="Enable prompt enhancement using the text encoder"
+    )
+    parser.add_argument(
         "--skip-existing",
         action="store_true",
         help="Skip scenes that already have generated videos"
@@ -409,6 +447,7 @@ Examples:
                 cfg_guidance_scale=args.cfg_guidance_scale,
                 negative_prompt=args.negative_prompt,
                 enable_fp8=args.enable_fp8,
+                enhance_prompt=args.enhance_prompt,
                 loras=args.lora if args.lora else None,
             )
             generated_videos.append(video_path)
