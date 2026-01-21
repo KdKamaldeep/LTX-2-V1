@@ -127,10 +127,10 @@ def generate_video_for_scene(
     scene_seed = seed + scene_num - 1
     
     # Generate video
-    # Use torch.no_grad() instead of torch.inference_mode() to avoid autograd conflicts
+    # Use torch.inference_mode() context manager like the working script
     # If enhance_prompt causes inference mode errors, retry without it
     try:
-        with torch.no_grad():
+        with torch.inference_mode():
             video, audio = pipeline(
                 prompt=prompt,
                 negative_prompt=negative_prompt,
@@ -149,7 +149,7 @@ def generate_video_for_scene(
         if "inference mode" in str(e).lower() or "autograd" in str(e).lower():
             if enhance_prompt:
                 logger.warning(f"⚠️  Inference mode error with enhance_prompt enabled. Retrying without prompt enhancement...")
-                with torch.no_grad():
+                with torch.inference_mode():
                     video, audio = pipeline(
                         prompt=prompt,
                         negative_prompt=negative_prompt,

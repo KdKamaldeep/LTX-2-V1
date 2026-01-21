@@ -77,7 +77,7 @@ class TI2VidTwoStagesPipeline:
             device=device,
         )
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def __call__(  # noqa: PLR0913
         self,
         prompt: str,
@@ -235,7 +235,7 @@ class TI2VidTwoStagesPipeline:
         return decoded_video, decoded_audio
 
 
-@torch.no_grad()
+@torch.inference_mode()
 def main() -> None:
     logging.getLogger().setLevel(logging.INFO)
     parser = default_2_stage_arg_parser()
