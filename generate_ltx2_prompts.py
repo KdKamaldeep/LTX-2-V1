@@ -52,8 +52,8 @@ def create_prompt_generation_instruction() -> str:
     - Maintain consistency in characters, setting, and tone across scenes
 
     CATEGORIES TO USE:
-    Animation: stop-motion, 2D/3D animation, claymation, hand-drawn
-    Stylized: comic book, cyberpunk, 8-bit pixel, surreal, minimalist, painterly, illustrated
+    Animation: stop-motion, 2D/3D animation, claymation, hand-drawn, Studio Ghibli style
+    Stylized: comic book, cyberpunk, 8-bit pixel, surreal, minimalist, painterly, illustrated, Studio Ghibli aesthetic
     Cinematic: period drama, film noir, fantasy, epic space opera, thriller, modern romance, experimental film, arthouse, documentary
 
     WHAT WORKS WELL:
@@ -61,7 +61,7 @@ def create_prompt_generation_instruction() -> str:
     - Emotive human moments and facial nuance
     - Weather effects (fog, mist, golden hour, rain)
     - Clear camera language ("slow dolly in", "handheld tracking")
-    - Stylized aesthetics (painterly, noir, analog film look)
+    - Stylized aesthetics (painterly, noir, analog film look, Studio Ghibli style with soft colors, detailed backgrounds, whimsical character designs, and naturalistic movement)
 
     WHAT TO AVOID:
     - Emotional labels without visual cues (use posture/gesture instead)
@@ -240,8 +240,8 @@ Examples:
   python generate_ltx2_prompts.py  # Interactive mode (will prompt for inputs)
 
 Style options:
-  Animation: stop-motion, 2D/3D animation, claymation, hand-drawn
-  Stylized: comic book, cyberpunk, 8-bit pixel, surreal, minimalist, painterly, illustrated
+  Animation: stop-motion, 2D/3D animation, claymation, hand-drawn, Studio Ghibli style
+  Stylized: comic book, cyberpunk, 8-bit pixel, surreal, minimalist, painterly, illustrated, Studio Ghibli aesthetic
   Cinematic: period drama, film noir, fantasy, epic space opera, thriller, modern romance, experimental film, arthouse, documentary
         """
     )
@@ -304,10 +304,10 @@ Style options:
         print(f"Style: {style}")
     else:
         print("\nStyle options:")
-        print("  - Animation: stop-motion, 2D/3D animation, claymation, hand-drawn")
-        print("  - Stylized: comic book, cyberpunk, 8-bit pixel, surreal, minimalist, painterly, illustrated")
+        print("  - Animation: stop-motion, 2D/3D animation, claymation, hand-drawn, Studio Ghibli style")
+        print("  - Stylized: comic book, cyberpunk, 8-bit pixel, surreal, minimalist, painterly, illustrated, Studio Ghibli aesthetic")
         print("  - Cinematic: period drama, film noir, fantasy, epic space opera, thriller, modern romance, experimental film, arthouse, documentary")
-        style = input("\nEnter the visual/cinematic style (e.g., 'film noir', 'cyberpunk', 'stop-motion', 'fantasy'): ").strip()
+        style = input("\nEnter the visual/cinematic style (e.g., 'film noir', 'cyberpunk', 'stop-motion', 'fantasy', 'Studio Ghibli style'): ").strip()
         if not style:
             style = ""
             print("No specific style selected - will use default cinematic style")
