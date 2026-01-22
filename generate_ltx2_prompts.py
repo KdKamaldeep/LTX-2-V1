@@ -88,7 +88,7 @@ def generate_story_outline(story_title: str, story_description: str, num_scenes:
     Returns:
         Story outline as a string
     """
-    system_prompt = """You are an expert screenwriter. Create a brief story outline for a short film.
+    system_prompt = """You are an expert screenwriter. Create a brief story outline for a youtube short film.
     The outline should describe the narrative flow and what happens in each scene, ensuring they connect logically."""
     
     style_context = f" The film should be in {style} style." if style else ""

@@ -1,0 +1,24 @@
+{
+  "prompts": [
+    {
+      "title": "Ordinary Morning",
+      "prompt": "The film opens with a wide shot of a suburban neighborhood bathed in the soft light of dawn, the warm color palette highlighting the textures of houses and blooming gardens. Families bustle about, a mother in her late 30s with shoulder-length brunette hair prepares breakfast, while children with unkempt hair laugh and chase each other outside. The scene intersperses quick cuts of commuters in cars, a flickering TV screen displaying news tickers about geopolitical tensions. As the camera slowly pans to a dimly lit control room, military personnel wearing fatigues monitor screens filled with satellite feeds, tension palpable in their focused expressions. Alarms beep softly in the background, underscoring the juxtaposition of ordinary life and impending chaos."
+    },
+    {
+      "title": "The Calm before the Storm",
+      "prompt": "In a mix of medium and close-up shots, the camera captures the everyday lives of diverse characters: a compassionate teacher in her 40s consoles a student, a young barista with a messy bun serves coffee with a distracted smile, and a devoted father in his 30s assists his daughter with homework, their interactions filled with warmth. The lighting remains bright and inviting, but phone notifications buzz urgently in the background, showcasing alarming news updates. As the camera transitions to the control room, a medium shot reveals the personnel increasingly alert, their faces reflecting the growing tension as satellite feeds flicker with ominous reports. The hum of machinery creates an undercurrent of dread that contrasts sharply with the oblivious normalcy of the outside world."
+    },
+    {
+      "title": "Escalating Tensions",
+      "prompt": "The camera abruptly cuts to a high-angle shot of a news broadcast blaring warnings about a border skirmish, capturing the concerned expressions of viewers staring at their screens. Rapid close-ups of social media feeds flooding with reactions bring a sense of urgency and panic, voices overlapping in concern and confusion. The tempo of the music heightens, matching the escalating tension as citizens begin to grasp the severity of the situation. In the control room, a tense medium shot shows military officers issuing commands, their expressions a mix of determination and fear as they prepare defenses. An unsettling silence follows as the gravity of the situation sets in, the oppressive atmosphere palpable through the dim lighting and urgent sounds of machinery."
+    },
+    {
+      "title": "The Moment of Truth",
+      "prompt": "The camera shifts back to civilians, shot in close-up as they stare at their screens, faces etched with anxiety as warnings about imminent military action scroll by. A mother, her hair tied back in a frantic ponytail, clutches her phone, urgent lines of worry creasing her forehead as she calls her husband. A group of friends, their conversations rising to a heated argument about whether to stay indoors or evacuate, capture the growing fear in their expressions and gestures. In the control room, the lighting grows darker, a countdown clock ominously ticking down as officers prep for the irreversible decision, their faces stark and serious. The tension peaks with a low rumble of thunder in the background, adding to the oppressive atmosphere of dread as decisions hang in the balance."
+    },
+    {
+      "title": "The Day It Started",
+      "prompt": "The scene culminates in a haunting silence as the camera captures a wide shot of the world outside, where life carries on obliviously, juxtaposed against the dimming lights in the control room. As alarms blare abruptly, the screen flickers, fading to black, leaving a chilling silence in its wake. The contrast between normalcy and impending doom creates a stark emotional weight as characters appear removed from reality, faces drained and eyes wide with realization. The words 'This is the day the world changed' appear slowly on the screen, echoing a profound sense of loss and the fragility of peace. The camera lingers in the dark for a moment longer, the absence of sound amplifying the gravity of the moment, leaving the audience grappling with the uncertainty of the future."
+    }
+  ]
+}

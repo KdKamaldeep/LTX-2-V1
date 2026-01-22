@@ -72,7 +72,7 @@ export PYTHONPATH=/workspace/LTX-2-V1/packages/ltx-pipelines/src:/workspace/LTX-
 
 
 python batch_generate_story_videos.py \
-     --json The_Diary_of_a_Young_Girl_script.json \
+     --json World_War_3.json \
     --checkpoint-path /workspace/LTX-2-V1/models/ltx2/ltx-2-19b-dev-fp8.safetensors \
     --distilled-lora /workspace/LTX-2-V1/models/ltx2/ltx-2-19b-distilled-lora-384.safetensors:0.8 \
     --spatial-upsampler-path /workspace/LTX-2-V1/models/ltx2/ltx-2-spatial-upscaler-x2-1.0.safetensors \
