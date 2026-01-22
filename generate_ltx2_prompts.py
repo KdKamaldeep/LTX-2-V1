@@ -34,34 +34,68 @@ def create_prompt_generation_instruction() -> str:
     return """You are an expert video prompt writer and screenwriter specializing in LTX-2 video generation. 
     You create cohesive short film scripts where each prompt represents a scene that flows naturally into the next.
     
+    PROMPT FORMAT AND STYLE:
+    - You may use screenplay format (INT./EXT. LOCATION – TIME) when appropriate, especially for establishing shots
+    - Include detailed dialogue with character attribution: "Character (tone/emotion): 'dialogue text'"
+    - When a specific style is provided (e.g., "pixar style", "sci-fi style", "film noir"), explicitly mention it in the prompt
+    - Use present tense throughout
+    - Write in a flowing narrative style that reads like a film script
+    
     KEY ASPECTS TO INCLUDE IN EACH SCENE PROMPT:
     1. Establish the shot - Use cinematography terms matching film genres. Include scale and category characteristics.
-    2. Set the scene - Describe lighting conditions, color palette, surface textures, and atmosphere.
-    3. Describe the action - Write core action as a natural sequence, flowing from beginning to end.
-    4. Define character(s) - Include age, hairstyle, clothing, and distinguishing details. Express emotions through physical cues.
-    5. Identify camera movement(s) - Specify when view shifts and how. Include how subjects appear after camera motion.
-    6. Describe the audio - Use clear descriptions for ambient sounds, music, and speech. For dialogue, use quotation marks.
+       Examples: "Cinematic action packed shot", "Animated cinematic shot", "A warm, intimate cinematic performance"
+    2. Set the scene - Describe lighting conditions, color palette, surface textures, and atmosphere in detail.
+       Examples: "Warm sunny backyard", "cozy, wood-paneled bar, lit with soft amber practical lights", "dark lit room"
+    3. Describe the action - Write core action as a natural sequence, flowing from beginning to end with specific timing and beats.
+       Include pauses, beats, and dramatic timing: "A beat.", "Beat.", "Quick zoom back", "Cut to side view"
+    4. Define character(s) - Include age, ethnicity (when relevant), hairstyle, clothing, and distinguishing details. 
+       Express emotions through physical cues and body language.
+       Examples: "young african american woman wearing a futuristic transparent visor", "woman and a man in their 30s", 
+       "senior frog instructor", "young female singer in her 20s with short brown hair and bangs"
+    5. Identify camera movement(s) - Specify exact camera movements with precise terminology.
+       Examples: "handheld tracking", "crane up", "dolly back", "zoom in", "pan right", "slow dolly in", 
+       "camera arcs left", "camera zooms in on", "camera pans to reveal", "hand held feel to the camera"
+    6. Describe the audio - Use clear descriptions for ambient sounds, music, and speech. 
+       For dialogue, use quotation marks and include character attribution and tone.
+       Examples: "says softly", "whispering dramatically", "says with an angry african american accent", 
+       "says with a low robotic voice", "mouth full", "off-screen, shouting over the noise"
+    7. Include style specification - When a style is provided, explicitly mention it in the prompt.
+       Examples: "pixar style acting and timing", "sci-fi style cinematic scene", "Cinematic action packed shot"
 
     FOR BEST RESULTS:
-    - Keep prompt in a single flowing paragraph for cohesiveness
-    - Use present tense verbs for movement and action
+    - Use specific camera language: "handheld tracking", "crane up", "dolly back", "zoom in/out", "pan left/right", "arc around"
+    - Include detailed cinematography: depth of field, bokeh, lighting quality, color temperature
+    - Describe motion blur, dust, steam, and atmospheric effects when relevant
+    - Include dramatic timing: "A beat.", "Beat.", pauses, "then", "suddenly"
     - Match detail to shot scale (closeups need more detail than wide shots)
-    - Focus on camera's relationship to subject when describing movement
-    - Write 4 to 8 descriptive sentences covering all key aspects
+    - Write 4 to 12 descriptive sentences covering all key aspects
     - Each scene should advance the story naturally
-    - Maintain consistency in characters, setting, and tone across scenes
+    - Maintain consistency in characters, setting, and tone throughout
+    - When style is specified, ensure it's mentioned explicitly in the prompt
+
+    STYLE EXAMPLES TO FOLLOW:
+    - "pixar style acting and timing" - Include exaggerated expressions, comedic timing, character animation style
+    - "sci-fi style cinematic scene" - Futuristic elements, advanced technology, space-age aesthetics
+    - "film noir" - High contrast lighting, shadows, dramatic angles, period-appropriate styling
+    - "animated cinematic shot" - Animation-specific camera movements and character design
+    - "Cinematic action packed shot" - Dynamic camera work, motion blur, intense energy
 
     CATEGORIES TO USE:
-    Animation: stop-motion, 2D/3D animation, claymation, hand-drawn, Studio Ghibli style
+    Animation: stop-motion, 2D/3D animation, claymation, hand-drawn, Studio Ghibli style, Pixar style
     Stylized: comic book, cyberpunk, 8-bit pixel, surreal, minimalist, painterly, illustrated, Studio Ghibli aesthetic
-    Cinematic: period drama, film noir, fantasy, epic space opera, thriller, modern romance, experimental film, arthouse, documentary
+    Cinematic: period drama, film noir, fantasy, epic space opera, thriller, modern romance, experimental film, arthouse, documentary, sci-fi
 
     WHAT WORKS WELL:
-    - Cinematic compositions with thoughtful lighting
+    - Cinematic compositions with thoughtful lighting (golden hour, warm amber, harsh shadows, soft practical lights)
     - Emotive human moments and facial nuance
-    - Weather effects (fog, mist, golden hour, rain)
-    - Clear camera language ("slow dolly in", "handheld tracking")
-    - Stylized aesthetics (painterly, noir, analog film look, Studio Ghibli style with soft colors, detailed backgrounds, whimsical character designs, and naturalistic movement)
+    - Weather effects (fog, mist, golden hour, rain, steam)
+    - Clear camera language with specific movements ("slow dolly in", "handheld tracking", "crane up", "zoom in on")
+    - Stylized aesthetics (painterly, noir, analog film look, Studio Ghibli style, Pixar style)
+    - Detailed dialogue with character attribution and tone
+    - Screenplay-style scene headers when appropriate (INT./EXT. LOCATION – TIME)
+    - Motion effects (motion blur, dust, steam, reflections)
+    - Depth of field and bokeh descriptions
+    - Dramatic timing and beats
 
     WHAT TO AVOID:
     - Emotional labels without visual cues (use posture/gesture instead)
@@ -70,8 +104,9 @@ def create_prompt_generation_instruction() -> str:
     - Too many characters or excessive objects
     - Inconsistent lighting logic
     - Overly complicated prompts
+    - Forgetting to mention the specified style when one is provided
 
-    Create scene prompts that form a cohesive narrative following ALL these guidelines."""
+    Create scene prompts that form a cohesive narrative following ALL these guidelines, matching the detailed, cinematic style of professional LTX-2 prompts."""
 
 
 def generate_story_outline(story_title: str, story_description: str, num_scenes: int, style: str = "", model: str = "gpt-4o-mini") -> str:
@@ -132,11 +167,11 @@ def generate_ltx2_prompts(story_title: str, story_description: str, num_scenes: 
     """
     system_prompt = create_prompt_generation_instruction()
     
-    style_context = f"\nVisual Style: {style}\nApply this style consistently throughout all scenes, incorporating appropriate cinematography, lighting, color palette, and aesthetic elements that match this style." if style else ""
+    style_context = f"\n\nIMPORTANT - Visual Style: {style}\nYou MUST explicitly mention this style in each scene prompt (e.g., '{style} style', '{style} cinematic scene', '{style} acting and timing'). Apply this style consistently throughout all scenes, incorporating appropriate cinematography, lighting, color palette, and aesthetic elements that match this style. The style should be mentioned naturally within the prompt text, not just as a tag." if style else ""
     
     description_context = f"\n\nStory Description:\n{story_description}" if story_description else ""
     
-    user_message = f"""You are writing a complete short film script with {num_scenes} scenes for a film titled "{story_title}".
+    user_message = f"""You are writing a complete short youtube film script with {num_scenes} scenes for a film titled "{story_title}".
 
 Story Outline:
 {story_outline}{description_context}{style_context}
@@ -147,10 +182,22 @@ Generate ALL {num_scenes} scenes that:
 - Maintain consistency with characters, setting, and tone throughout
 - Each scene is complete and cinematic, following LTX-2 prompt guidelines
 - Scene 1 establishes the opening, middle scenes develop the story, final scene provides resolution
+- Include detailed camera movements, dialogue with character attribution, and specific cinematography descriptions
+- When style is specified, explicitly mention it in each prompt (e.g., "pixar style acting and timing", "sci-fi style cinematic scene")
 
 For EACH scene, provide:
 1. A brief scene title (2-5 words describing the scene)
-2. A full LTX-2 video generation prompt (4-8 sentences, single paragraph, present tense)
+2. A full LTX-2 video generation prompt that includes:
+   - Detailed scene description with lighting, atmosphere, and setting
+   - Specific camera movements (handheld tracking, crane up, dolly back, zoom in/out, pan, etc.)
+   - Character descriptions with age, appearance, clothing when relevant
+   - Dialogue with character attribution and tone (e.g., "Character (whispering): 'dialogue'")
+   - Action sequences with timing and beats ("A beat.", "then", "suddenly")
+   - Cinematography details (depth of field, bokeh, motion blur, atmospheric effects)
+   - Style mention if a style was specified
+   - Write 4-12 sentences in a flowing narrative style, present tense
+
+The prompts should match the detailed, professional style of LTX-2 examples with rich cinematography descriptions, specific camera work, and natural dialogue integration.
 
 Respond ONLY with valid JSON in the following format (no markdown, no explanation):
 {{
